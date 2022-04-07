@@ -1,0 +1,62 @@
+Hello There
+
+Welcome to a Hands on, Session on Apache Spark, Today, We will be working with data frames, which is conceptually equivalent to relational table
+
+I will be working with 2 sets of external data, which we will see in a moment
+
+for this tutorial, we will read stock ticker data from a hive table, and join it with a text file which contains dividend data, 
+and go on to perform certain operations.
+
+Before we proceed, let us check if hadoop is up and running, there you go
+
+next let us look at the files already in HDFS, which I had Ingested previoulsy
+
+//Looking at the sample, you will see the files are structured and comma separated, which is how we want it for the tutorial
+
+//Open Hadoop Console
+The larger trades file, I will be accessing it as a hive table and the smaller dividend file
+
+//Open Hive
+Looking into hive, we got the tables created during the previous tutorial, let us see what we got here
+
+Show tables
+Describe Table
+
+I am not going to go deep into the HQL, but one can perform most common operations namely Select, Filter, Group, Order and Join Operations
+
+Let us fire up a simple one,  followed by a heavier query with a aggregations and group and orderby
+
+While this tutorial is not about performance, it is interesting to note the execution times
+
+Select Count(*);
+Group by
+
+We see the map reduce going, on the hive table which has close to 10Mn rows of records,
+
+it has taken about xxxx Seconds, Let me note the times- for reference later
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+now that we have seen how hive performs
+
+Let us start the spark-shell, here I am going to be using a custom shell script, which looks like this, 
+
+which is a convenient way to call spark shell with other packages and libraries one would like to work with, you will see references to Kafka, Flume etc, which are all supported thrugh the consistent spark programming model
+
+//Jumping right In
+Let us write a spark driver program, spark driver is a set of commands, to achieve outcomes through transformations and actions, each of which result in a Resilient Distributed Dataset, also known as a RDD
+
+First I will fetch the trades data which is stored in local HDFS instance
+
+1. I import the spark sql libraries, there are two options here, one is Working with Spark
+
+2. I build a spark session, the entry point to sql sql, I am enabling hive support, and providing the location of the hive warehouse
+
+3. Once I have done that,let us query the trades table, let us select all fields and all records, as i would like to have all , before i do specific filter, join and other operations
+
+4. Until the first method is called on the RDD, the data isnt fetched, this is called lazy evaluation
+
+1. We could do a show, which is equivalent to a select, however the command displays a minimum set
+2. Next we can apply a filter on certain fields
+3. We can apply OrderBy, Group By
+4. We can pass this Subset, to a new Data Frame, for futher analysis
+5. We can cache the Dataframe

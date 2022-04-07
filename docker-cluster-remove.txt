@@ -1,0 +1,8 @@
+docker rm ubuntu-mysql-server
+docker rm ubuntu-zookeeper
+docker rm ubuntu-hadoop-master
+docker rm ubuntu-hadoop-edge
+docker rm ubuntu-hadoop-datanode-01
+docker rm ubuntu-hadoop-datanode-02
+docker rm ubuntu-hadoop-datanode-03
+docker ps -a

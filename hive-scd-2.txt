@@ -1,0 +1,53 @@
+--==============	SRC =================================
+CREATE TABLE t_src(
+  login VARCHAR(255), -- natural key
+  premium_user BOOLEAN, -- SCD Type 2
+  address VARCHAR(255), -- SCD Type 2
+  phone VARCHAR(255), -- SCD Type 2, may be NULL
+  name VARCHAR(255), -- SCD Type 1
+  surname VARCHAR(255), -- SCD Type 1
+  year_of_birth INT -- SCD Type 1, may be NULL
+) STORED AS TEXTFILE;
+
+--===============STG=================================
+CREATE TABLE t_staging(
+  login VARCHAR(255), -- natural key
+  premium_user BOOLEAN, -- SCD Type 2
+  address VARCHAR(255), -- SCD Type 2
+  phone VARCHAR(255), -- SCD Type 2, may be NULL
+  name VARCHAR(255), -- SCD Type 1
+  surname VARCHAR(255), -- SCD Type 1
+  year_of_birth INT -- SCD Type 1, may be NULL
+) STORED AS TEXTFILE;
+
+--===============PROD========================================
+CREATE TABLE t_prod(
+ dim_user_id INT, -- surrogate key
+  login VARCHAR(255), -- natural key
+  premium_user BOOLEAN, -- SCD Type 2
+  address VARCHAR(255), -- SCD Type 2
+  phone VARCHAR(255), -- SCD Type 2, may be NULL
+  name VARCHAR(255), -- SCD Type 1
+  surname VARCHAR(255), -- SCD Type 1
+  year_of_birth INT, -- SCD Type 1, may be NULL
+  scd_version INT, -- historical version of the record (1 is the oldest)
+  scd_start_date TIMESTAMP, -- start date and time
+  scd_end_date TIMESTAMP, -- end date and time (9999-12-31 23:59:59 by default)
+  scd_active BOOLEAN, -- whether it's the latest version or not
+) STORED AS TEXTFILE;
+
+--================STAGE============================================
+DROP TABLE IF EXISTS t_new;
+CREATE TABLE t_new
+STORED AS TEXTFILE
+AS SELECT *
+FROM t_prod
+LIMIT 0;
+--====================LOAD
+INSERT INTO TABLE t_new
+SELECT p.*
+FROM t_prod p
+LEFT JOIN t_staging s
+ON p.login = s.login
+WHERE s.login IS NULL;  
+======================

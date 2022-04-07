@@ -1,0 +1,251 @@
+$HADOOP_HOME/bin/hadoop fs -chmod g+w /tmp 
+$HADOOP_HOME/bin/hadoop fs -chmod g+w /user/hive/warehouse
+
+
+CREATE EXTERNAL TABLE stocks.t_raw_daily_prices(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/dataops/stocks/stage/daily_prices';
+
+
+CREATE EXTERNAL TABLE stocks.t_orc_daily_prices(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+STORED AS ORC tblproperties ("orc.compress"="NONE");
+
+
+INSERT INTO stocks.t_orc_daily_prices SELECT * FROM stocks.t_raw_daily_prices;
+
+select year,origin,dest,count(*) as flights from airportops.t_orc_flightdata group by year,origin,dest order by year;
+
+==================================================================================================================================================================================
+CREATE EXTERNAL TABLE airport.t_raw_flightdata(year INT, month INT,dayofmonth INT,dayofweek INT,deptime INT,crsdeptime INT,arrtime INT,crsarrtime INT,uniquecarrier STRING,flightnum INT,tailnum STRING,actualelapsedtime INT,crselapsedtime INT,airtime INT,arrdelay INT,depdelay INT,origin STRING,dest STRING,distance INT,taxiin INT,taxiout INT,cancelled INT,cancellationcode STRING,diverted INT,carrierdelay INT,weatherdelay INT,nasdelay INT,securitydelay INT,lateaircraftdelay INT,isarrdelayed STRING,isdepdelayed STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS TEXTFILE LOCATION '/dataops/airport/stage/flightdata';
+
+CREATE EXTERNAL TABLE airport.t_orc_flightdata(year INT, month INT,dayofmonth INT,dayofweek INT,deptime INT,crsdeptime INT,arrtime INT,crsarrtime INT,uniquecarrier STRING,flightnum INT,tailnum STRING,actualelapsedtime INT,crselapsedtime INT,airtime INT,arrdelay INT,depdelay INT,origin STRING,dest STRING,distance INT,taxiin INT,taxiout INT,cancelled INT,cancellationcode STRING,diverted INT,carrierdelay INT,weatherdelay INT,nasdelay INT,securitydelay INT,lateaircraftdelay INT,isarrdelayed STRING,isdepdelayed STRING)
+STORED AS ORC tblproperties ("orc.compress"="NONE");
+
+INSERT INTO t_orc_flightdata SELECT * FROM t_raw_flightdata;
+
+
+SELECT A.year,A.month,A.dayofmonth,A.dayofweek,A.deptime,A.crsdeptime,A.arrtime,A.crsarrtime,A.uniquecarrier,A.flightnum,A.tailnum,A.actualelapsedtime,A.crselapsedtime,A.airtime,A.arrdelay,A.depdelay,A.origin,
+B.dest,B.distance,B.taxiin,B.taxiout,B.cancelled,B.cancellationcode,B.diverted,B.carrierdelay,B.weatherdelay,B.nasdelay,B.securitydelay,B.lateaircraftdelay,B.isarrdelayed,B.isdepdelayed FROM t_raw_flightdata A JOIN t_orc_flightdata B ON
+
+--Airports
+CREATE EXTERNAL TABLE t_raw_airports(id STRING,ident STRING,type STRING,name STRING,latitude_deg FLOAT,longitude_deg FLOAT,elevation_ft INT,continent STRING,iso_country STRING,iso_region STRING, municipality STRING, scheduled_service STRING,gps_code STRING,iata_code STRING,local_code STRING,home_link STRING,wikipedia_link STRING,keywords STRING) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+STORED AS TEXTFILE LOCATION '/dataops/flightdata/stage/airports';
+
+
+CREATE EXTERNAL TABLE t_raw_airports(id STRING,ident STRING,type STRING,name STRING,latitude_deg FLOAT,longitude_deg FLOAT,elevation_ft INT,continent STRING,iso_country STRING,iso_region STRING, municipality STRING, scheduled_service STRING,gps_code STRING,iata_code STRING,local_code STRING,home_link STRING,wikipedia_link STRING,keywords STRING) 
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+   "separatorChar" = ",",
+   "quoteChar"     = "\""
+)  
+STORED AS TEXTFILE 
+LOCATION '/dataops/flightdata/stage/airports';
+
+
+CREATE TABLE t_res_orig_dest_delays STORED AS ORC AS 
+SELECT a.year,a.month,a.dayofmonth,a.dayofweek,a.deptime,a.crsdeptime,a.arrtime,a.crsarrtime,
+a.uniquecarrier,a.flightnum,a.tailnum,a.actualelapsedtime,a.crselapsedtime,a.airtime,a.arrdelay,a.depdelay,
+a.origin,b.type as orig_type,b.latitude_deg as orig_lat,b.longitude_deg as orig_long,
+a.dest,c.type as dest_type,c.latitude_deg as dest_lat, c.longitude_deg as dest_long,
+a.distance,a.taxiin,a.taxiout,a.cancelled,a.cancellationcode,a.diverted,
+a.carrierdelay,a.weatherdelay,a.nasdelay,a.securitydelay,a.lateaircraftdelay,
+a.isarrdelayed,a.isdepdelayed
+FROM t_orc_flightdata a 
+JOIN t_raw_airports b 
+ON (a.origin = b.iata_code)
+JOIN t_raw_airports c 
+ON (a.dest = c.iata_code)
+ORDER BY a.year,a.month,a.dayofmonth,a.dayofweek,a.deptime;
+
+==================================================================================================================================================================================
+select A.event_id as tran_id,A.tran_dt as tran_dt,B.branch as branch,B.state as state,B.lat as lat,B.lon as lat,C.tran_desc as tran_desc,A.tran_amt as tran_amt 
+from atm_transactions A, branch B, tran_types C 
+where A.branch = B.bran_id and A.tran_type=C.tran_type limit 1000;
+
+CREATE EXTERNAL TABLE t_atmlogs(tran_id INT,tran_dt DATE,tran_ts TIMESTAMP, branch INT, tran_type INT, tran_amt DECIMAL(9,2)) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+STORED AS TEXTFILE LOCATION '/projects/bank/data/stage/atmlogs';	     
+
+
+CREATE EXTERNAL TABLE t_ref_tran_types(tran_type INT, tran_desc STRING) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+STORED AS TEXTFILE LOCATION '/projects/bank/data/stage/tran_types';
+
+CREATE EXTERNAL TABLE t_ref_branch(bran_id INT,bran_loc STRING,channel STRING,country STRING, bran_lat FLOAT,bran_lon FLOAT, is_active INT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+STORED AS TEXTFILE LOCATION '/projects/bank/data/stage/branch';
+
+
+INSERT OVERWRITE TABLE atm_transactions AS 
+SELECT from_unixtime(unix_timestamp(tran_dt,'mm-dd-yyyy HH:mm:ss')) as tran_dt,
+year(to_date(from_unixtime(unix_timestamp(tran_dt,'mm-dd-yyyy')))) as tr_year,
+month(to_date(from_unixtime(unix_timestamp(tran_dt,'mm-dd-yyyy')))) as tr_mon,
+day(to_date(from_unixtime(unix_timestamp(tran_dt,'mm-dd-yyyy')))) as tr_day,
+cast(hour(from_unixtime(unix_timestamp(tran_dt))) as int) as tr_hr,
+cast(minute(from_unixtime(unix_timestamp(tran_dt))) as int) as tr_min, 
+cast(second(from_unixtime(unix_timestamp(tran_dt))) as int) as tr_sec,tran_id,  
+branch, tran_type, cast((branch * tran_type * 0.1) as decimal(9,2)) as tran_amt 
+FROM transactions 
+ORDER by tran_dt;
+
+CREATE TABLE branch(branch_id INT,branch STRING,branch_cd STRING,state STRING,lat FLOAT,lon FLOAT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS TEXTFILE LOCATION '/projects/bank/data/branches';
+
+CREATE EXTERNAL TABLE atm_transactions(tran_id INT,tran_dt DATE,branch STRING,state STRING,lat float, lon float, tran_typ STRING, tran_amt DECIMAL(9,2)) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/bank/data/stage/atmlogs';
+
+10000071,2017-06-05 00:00:00,Mulgrave,NSW,-33.626053000,150.829912000,Withdraw Money,10449.00
+==================================================================================================================================================================================
+CREATE TABLE if not exists daily_trades_pq(year INT, month INT,dayofmonth INT,dayofweek INT,deptime INT,crsdeptime INT,arrtime INT,crsarrtime INT,uniquecarrier STRING,flightnum INT,tailnum STRING,actualelapsedtime INT,crselapsedtime INT,airtime INT,arrdelay INT,depdelay INT,origin STRING,dest STRING,distance INT,taxiin INT,taxiout INT,cancelled INT,cancellationcode STRING,diverted INT,carrierdelay INT,weatherdelay INT,nasdelay INT,securitydelay INT,lateaircraftdelay INT,isarrdelayed STRING,isdepdelayed STRING)
+STORED AS PARQUET LOCATION 'hdfs://localhost:54310/user/hive/warehouse/stocks_parquet';
+
+CREATE EXTERNAL TABLE client(client_id STRING,  name STRING,  surname STRING,  client_type STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/project/acme_crm/client/';
+
+CREATE EXTERNAL TABLE t_dividends_raw(xchange STRING,  symbol STRING,  divdate STRING,  dividends FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/stocks/stage/dividends';
+
+CREATE EXTERNAL TABLE dividends (xchange STRING,  symbol STRING,  divdate STRING,  dividends FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/project/trades/NYSE/data/dividends';
+
+CREATE EXTERNAL TABLE t_daily_trades_raw(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/stocks/data/daily_prices';
+
+
+CREATE TABLE daily_prices_int (xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/NYSE/data/daily_prices_int';
+
+
+CREATE EXTERNAL TABLE t_daily_prices_raw(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/stocks/data/daily_prices'
+
+CREATE EXTERNAL TABLE daily_prices_alpha (xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/NYSE/staging
+
+select count(*) from daily_prices where symbol='AEA' and year(to_date(trdate)) between 2001 and 2005;
+
+CREATE EXTERNAL TABLE daily_prices (xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/NYSE/staging/daily_prices';
+
+CREATE EXTERNAL TABLE dividends (xchange STRING,  symbol STRING,  divdate STRING,  dividends FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/NYSE/staging/dividends';
+
+CREATE TABLE t_orc_daily_prices_by_dt(xchange string, symbol string, trdate date ,open float, high float,low float,close float,volume float, adj_close float) 
+PARTITION by (trdate date) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS ORC;
+
+INSERT into TABLE t_daily_prices_orc_1 select xchange, open, high, low, close, volume, adj_close,symbol,trdate from t_daily_prices_raw
+
+AS SELECT * from t_daily_prices_raw;
+
+CREATE TABLE t_daily_trades_part(xchange string, symbol string, open float, high float,low float,close float,volume float, adj_close float) PARTITIONED BY (trdate string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;
+
+CREATE TABLE t_part_test(xchange string, open float, high float, low float, close float, volume int, adj_close float) partitioned by (symbol string,trdate date) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+
+CREATE TABLE t_daily_trades_part(xchange string, symbol string, open float, high float,low float,close float,volume float, adj_close float) PARTITIONED BY (trdate string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;
+
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+SET hive.exec.max.dynamic.partitions=100000;
+SET hive.exec.max.dynamic.partitions.pernode=100000;
+
+INSERT OVERWRITE TABLE t_daily_prices_part (trdate) select xchange,symbol, open, high, low, close, volume, adj_close,trdate from t_daily_trades_by_dt sort by trdate; where trdate between '1962-01-01' and '1962-01-05';
+ 
+CREATE database transactions;
+use transactions;
+
+CREATE TABLE atmlogs (
+tran_id string,
+branch string,
+lat float,
+lon float,
+tran_typ string,
+tran_amt float
+) partitioned by (tran_dt date) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+CREATE TABLE t_atmlogs_orc (
+tran_id string,
+tran_dt string,
+branch string,
+lat float,
+lon float,
+tran_typ string,
+tran_amt float
+)STORED AS ORC;
+
+INSERT OVERWRITE TABLE t_atmlogs_orc select * from t_transactions;
+
+drop TABLE s_atmlogs;
+drop TABLE s_branch_master;
+drop TABLE s_tran_typ;
+
+DROP TABLE IF EXISTS s_atmlogs;
+
+CREATE EXTERNAL TABLE t_raw_atmlogs(tran_id STRING,tran_dt TIMESTAMP,bran_id INT,tran_typ INT, tran_amt float)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/bdlbank/data/stage/atm_logs';
+
+CREATE EXTERNAL TABLE t_ref_branch(bran_id INT,area STRING, channel STRING, country STRING ,lat float, lon float)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS TEXTFILE LOCATION '/projects/bdlbank/data/stage/bran_loc';
+
+CREATE EXTERNAL TABLE t_ref_tran_typ(tran_typ INT,tran_desc STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS TEXTFILE LOCATION '/projects/bdlbank/data/stage/tran_type';
+
+CREATE TABLE t_atmlogs_orc
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS ORC 
+AS 
+SELECT t.tran_id,t.tran_dt,b.area,b.lat,b.lon,c.tran_desc, t.tran_amt as amount FROM s_atmlogs_raw t
+LEFT OUTER JOIN s_branch_master b ON (t.bran_id = b.bran_id)
+LEFT OUTER JOIN s_tran_typ c ON (t.tran_typ=c.tran_typ)
+ORDER BY t.tran_dt;
+
+========================================PARTITIONING AND BUCKETING===========================================================================================================
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=100000;
+set hive.enforce.bucketing = true;
+
+CREATE EXTERNAL TABLE t_daily_prices_raw(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/projects/stocks/stage/daily_prices';
+
+CREATE TABLE t_daily_prices_orc_int(xchange string, symbol string, trdate date ,open float, high float,low float,close float,volume float, adj_close float) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS ORC;
+
+========================================PARTITIONING===========================================================================================================
+
+INSERT OVERWRITE TABLE t_daily_prices_orc PARTITION(trdate) 
+SELECT xchange,symbol,open,high,low,close,volume,adj_close,to_date(from_unixtime(unix_timestamp(trdate, "yyyy-mm-dd"))) AS trdate
+FROM t_daily_prices_orc_int
+WHERE year(trdate)=1965;
+
+========================================BUCKETING===========================================================================================================
+CREATE TABLE t_daily_prices_orc_bucketedd(xchange string, symbol string, open float, high float,low float,close float,volume float, adj_close float)
+PARTITIONED BY (trdate date)
+STORED AS ORC tblproperties ("orc.compress"="NONE");
+CLUSTERED BY (symbol) SORTED BY (symbol) INTO 32 BUCKETS
+
+INSERT OVERWRITE TABLE t_daily_prices_bucket_orc PARTITION(trdate) 
+SELECT xchange,symbol,open,high,low,close,volume,adj_close,to_date(from_unixtime(unix_timestamp(trdate, "yyyy-mm-dd"))) AS trdate
+FROM t_daily_prices_orc_int
+WHERE year(trdate)=1965
+DISTRIBUTE BY symbol

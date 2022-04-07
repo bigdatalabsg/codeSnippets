@@ -1,0 +1,54 @@
+create table atm_transactions(
+event_id int PRIMARY KEY,
+tr_dt date,
+tr_hms text,                      
+tr_year int,                     
+tr_mon  int,                    
+tr_dom  int,           	                    
+tr_hour int,          	                    
+tr_min  int,         	                    
+tr_sec  int,        	                    
+tr_id text,
+branch  int,                       
+tr_type int,                      
+tr_amt float,
+PRIMARY KEY ((tr_id), tr_year, tr_mon, tr_dom)
+) WITH CLUSTERING ORDER BY (tr_year DESC, tr_mon DESC, tr_dom DESC);
+
+//WITH CLUSTERING ORDER BY ( tr_dt DESC, tr_hms DESC,tr_year DESC, tr_mon DESC, tr_dom DESC, tr_hour DESC, tr_min DESC, tr_sec DESC);
+
+COPY atm_transactions(event_id,tran_dt,tr_hms,tr_year,tr_mon,tr_dom,tr_hour,tr_min,tr_sec,tran_id,branch,tran_type,tran_amt) FROM '/home/hduser/Projects/transactions/data/SAMPLE.csv'
+
+create table atm_transactions(
+tran_dt timestamp,                      
+tr_year int,                     
+tr_mon  int,                    
+tr_dom  int,           	                    
+tr_hour int,          	                    
+tr_min  int,         	                    
+tr_sec  int,        	                    
+tran_id text,
+branch  int,                       
+tran_type int,                      
+tran_amt float,
+PRIMARY KEY((tran_id))
+)
+WITH CLUSTERING ORDER BY (tran_dt DESC, branch ASC, tran_type ASC,tr_year DESC, tr_mon DESC, tr_dom DESC, tr_hour DESC, tr_min DESC,
+tr_sec DESC);
+
+create table atm_transactions_01(
+tran_dt timestamp,                      
+tr_year int,                     
+tr_mon  int,                    
+tr_dom  int,           	                    
+tr_hour int,          	                    
+tr_min  int,         	                    
+tr_sec  int,        	                    
+tran_id text,
+branch  int,                       
+tran_type int,                      
+tran_amt float,
+PRIMARY KEY (tran_id)
+) WITH CLUSTERING ORDER BY (tran_id);
+
+COPY atm_transactions(tran_dt,tr_year,tr_mon,tr_dom,tr_hour,tr_min,tr_sec,tran_id,branch,tran_type,tran_amt) FROM '/home/hduser/Projects/transactions/data/atm_transactions.csv' WITH DELIMITER ',' AND HEADER = false;

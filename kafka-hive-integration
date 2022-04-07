@@ -1,0 +1,13 @@
+CREATE EXTERNAL TABLE ks_atmlogs
+(tran_id string,tran_dt string,branch string,
+latitude float,longitude float,tran_typ string,tran_amt float)
+STORED BY 'org.apache.hadoop.hive.kafka.KafkaStorageHandler'
+TBLPROPERTIES("kafka.topic"="atmlogs",
+"kafka.bootstrap.servers"="localhost:9092",
+"kafka.serde.class"="org.apache.hadoop.hive.serde2.OpenCSVSerde"
+);
+
+ALTER TABLE 
+  ks_atmlogs 
+SET TBLPROPERTIES 
+  ("kafka.consumer.max.poll.records" = "10");

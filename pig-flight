@@ -1,0 +1,9 @@
+//Load data and schema
+flightdata= LOAD 'hdfs://localhost:9000/user/project/flightdata/large/flightdata.csv' USING PigStorage(',') AS ( year:int, month:int, dayofmonth:int, dayofweek:int, deptime:int, crsdeptime:int, arrtime:int, crsarrtime:int, uniquecarrier:chararray,flightnum:int, tailnum:chararray, actualelapsedtime:int, crselapsedtime:int, airtime:int,arrdelay:int, depdelay:int, origin:chararray, dest:chararray, distance:int, taxiin:int, taxiout:int, cancelled:int,cancellationcode:chararray, diverted:int, carrierdelay:int, weatherdelay:int, nasdelay:int, securitydelay:int,lateaircraftdelay:int,isarrdelayed:chararray, isdepdelayed:chararray );
+
+//Group Data
+grp_data= GROUP flightdata ALL;
+
+//Count 
+rec_count= FOREACH grp_data GENERATE COUNT(flightdata.year);
+

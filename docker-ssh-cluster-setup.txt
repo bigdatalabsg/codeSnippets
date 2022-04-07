@@ -1,0 +1,13 @@
+ssh-keygen -t rsa -P ""
+
+cat $HOME/.ssh/id_rsa.pub >> $HOME/.ssh/authorized_keys
+
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@mysql
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@zookeeper
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@master
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@edge
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@datanode01
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@datanode02
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@datanode03
+
+

@@ -1,0 +1,53 @@
+conda create -n airflow python=3.8
+
+AIRFLOW_VERSION=2.2.0
+PYTHON_VERSION="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+PROVIDERS=apache-hdfs,apache-hive,apache-druid,apache-pinot,apache-spark,apache-sqoop,celery,http,google,elasticsearch,mysql,jdbc,postgres,presto,ssh,neo4j,apache-livy,jenkins,jira
+pip install "apache-airflow[$PROVIDERS]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+
+
+
+
+//Official
+DROP DATABASE airflow;CREATE DATABASE airflow DEFAULT CHARACTER SET utf8;
+DROP USER 'airflow'@'localhost';CREATE USER 'airflow'@'localhost' IDENTIFIED BY 'airfpwd';
+GRANT ALL PRIVILEGES ON airflow.* TO 'airflow'@'localhost' WITH GRANT OPTION;COMMIT;FLUSH PRIVILEGES;
+
+pip install 'apache-airflow-providers-apache-hdfs'
+pip install 'apache-airflow-providers-apache-hive'
+pip install 'apache-airflow-providers-apache-druid'
+pip install 'apache-airflow-providers-apache-pinot'
+pip install 'apache-airflow-providers-apache-spark'
+pip install 'apache-airflow-providers-apache-sqoop'
+pip install 'apache-airflow-providers-celery'
+pip install 'apache-airflow-providers-http'
+pip install 'apache-airflow-providers-google'
+pip install 'apache-airflow-providers-elasticsearch'
+pip install 'apache-airflow-providers-mysql'
+pip install 'apache-airflow-providers-jdbc'
+pip install 'apache-airflow-providers-postgres'
+pip install 'apache-airflow-providers-presto'
+pip install 'apache-airflow-providers-ssh'
+pip install 'apache-airflow-providers-neo4j'
+pip install 'apache-airflow-providers-apache-livy'
+pip install 'apache-airflow-providers-jenkins'
+pip install 'apache-airflow-providers-jira'
+
+
+
+//Install Airflow along with Providers
+AIRFLOW_VERSION=2.1.0
+PYTHON_VERSION=3.7
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+PROVIDERS=apache-hdfs,apache-hive,apache-druid,apache-pinot,apache-spark,apache-sqoop,celery,http,google,elasticsearch,mysql,jdbc,postgres,presto,ssh,neo4j,apache-livy,jenkins,jira
+pip install "apache-airflow[$PROVIDERS]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+
+AIRFLOW_VERSION=2.0.1
+PYTHON_VERSION=3.8
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+pip install "apache-airflow[async,mysql,google]==${AIRFLOW_VERSION} --constraint "${CONSTRAINT_URL}"
+
+
+//Create admin User
+airflow users create --role Admin --username admin --firstname airflow --lastname superuser --email admin@bigdatalabsg.org

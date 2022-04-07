@@ -1,0 +1,23 @@
+SELECT b.symbol as symbol,b.trdate as trdate, b.close as today_close, a.close as prev_close, (b.close-a.close) as diff, CASE WHEN (b.close-a.close)>0  then "Up" WHEN (b.close-a.close)<0 then "Down" ELSE "No Change" END as trend from t_daily_trades_orc_zlib a inner join t_daily_trades_orc_zlib b on b.symbol=a.symbol and b.trdate=DATE_ADD(a.trdate,1);
+
+
+CREATE TABLE stocks_trends(
+trdate string,
+yearr int,
+today_close float,
+prev_close float,
+diff float,
+trend string) 
+PARTITIONED BY (symbol string) CLUSTERED BY (yearr) SORTED BY (yearr) INTO 32 BUCKETS STORED AS ORC tblproperties ("orc.compress"="ZLIB"); 
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+
+INSERT OVERWRITE table stocks_trends partition(symbol) SELECT b.trdate as trdate, year(b.trdate) as yearr,b.close as today_close, a.close as prev_close, (b.close-a.close) as diff, CASE WHEN (b.close-a.close)>0  then "Up" WHEN (b.close-a.close)<0 then "Down" ELSE "No Change" END as trend, b.symbol as symbol from t_daily_trades_orc_zlib a inner join t_daily_trades_orc_zlib b on b.symbol=a.symbol and b.trdate=DATE_ADD(a.trdate,1) 
+DISTRIBUTE by symbol;
+
+
+
+
+
+

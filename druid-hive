@@ -1,0 +1,20 @@
+SET hive.druid.broker.address.default=localhost:8082
+
+CREATE EXTERNAL TABLE t_banklogs_dru
+STORED BY 'org.apache.hadoop.hive.druid.DruidStorageHandler'
+TBLPROPERTIES ("druid.datasource" = "banklogs-daily");
+
+CREATE EXTERNAL TABLE t_banklogs_hv_dru
+(`__time` TIMESTAMP, `dimension1` STRING, `dimension2` STRING, `metric1` INT, `metric2` FLOAT)
+STORED BY 'org.apache.hadoop.hive.druid.DruidStorageHandler';
+
+
+
+CREATE TABLE t_banklogs_hv_dru
+STORED BY 'org.apache.hadoop.hive.druid.DruidStorageHandler'
+TBLPROPERTIES ("druid.datasource" = "banklogs-hive")
+AS
+SELECT tran_dt as `__time`,area,tran_desc,amount from t_atmlogs_orc limit 10;
+
+
+<select `timecolumn` as `___time`, `dimension1`, `dimension2`, `metric1`, `metric2`....>;

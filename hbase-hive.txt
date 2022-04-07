@@ -1,0 +1,32 @@
+Create external table daily_trades(xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  STORED AS TEXTFILE LOCATION '/user/demo/NYSE/data/daily_prices';
+
+Create external table dividends (xchange STRING,  symbol STRING,  divdate STRING,  dividends FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  STORED AS TEXTFILE LOCATION '/user/demo/NYSE/data/dividends';
+
+
+Create table daily_trades(recid INT,xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = ':key,trade:xchange,trade:symbol,trade:trdate,trade:open,trade:high,trade:low,trade:close,trade:volume,trade:adj_close')
+TBLPROPERTIES ("hbase.table.name" = "daily_trades");
+
+Create external table stocks(tradeid STRING,xchange STRING,  symbol STRING,  trdate STRING,  open FLOAT,  high FLOAT,  low FLOAT,  close FLOAT,  volume INT,  adj_close FLOAT)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = ':key,trade:xchange,trade:symbol,trade:trdate,trade:open,trade:high,trade:low,trade:close,trade:volume,trade:adj_close')
+TBLPROPERTIES ("hbase.table.name" = "stocks");
+
+select count(*) from daily_prices where symbol='AEA' and year(to_date(trdate)) between 2001 and 2005;
+
+
+Employee table Hbase to Hive
+============================================================================================================================================
+CREATE EXTERNAL TABLE t_hb_emp(lineid INT,empno INT, ename STRING, job STRING,  mgr INT, hiredate STRING, sal FLOAT,  comm FLOAT,  deptno INT)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" =
+':key,profess:empno,personal:ename,profess:job,profess:mgr,profess:hiredate,profess:sal,profess:comm,profess:deptno')
+TBLPROPERTIES ("hbase.table.name" = "emp");
+============================================================================================================================================
+CREATE EXTERNAL TABLE t_hb_dept(lineid INT,deptno INT, dname STRING, location STRING)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" =
+':key,dept:deptno,dept:dname,dept:location')
+TBLPROPERTIES ("hbase.table.name" = "dept");
+

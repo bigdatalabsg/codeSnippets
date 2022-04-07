@@ -1,0 +1,18 @@
+EMP= LOAD 'emp/emp.csv' using PigStorage(',') AS (empno:int,ename:chararray,job:chararray,manager:int,hiredate:chararray, salary:float, comm:float, deptno:int);
+
+DEPT= LOAD 'dept/dept.csv' using PigStorage(',') AS (deptno:int, dname:chararray,location:chararray);
+
+C= JOIN EMP BY (deptno) LEFT OUTER, DEPT BY (deptno);
+
+D= FILTER C BY EMP::deptno>=10;
+
+E= FOREACH D GENERATE EMP::empno,EMP::ename,EMP::job,DEPT::dname,DEPT::location;
+
+DUMP E;
+
+STORE EMP INTO 'hbase://t_emp'
+USING USING org.apache.pig.backend.hadoop.hbase.HBaseStorage(
+'pers:ename, prof:comm, prof:deptno', prof:hiredate,prof:job, prof:mgr,prof:sal')
+'pers:ename prof:comm prof:deptno' prof:hiredate prof:job prof:mgr prof:sal')
+
+

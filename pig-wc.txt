@@ -1,0 +1,9 @@
+A= LOAD 'logtext.txt' USING PigStorage() as (f1:chararray);
+B= FOREACH A GENERATE TOKENIZE(f1);
+C= GROUP B BY A.f1;
+B= FOREACH A GENERATE FLATTEN(TOKENIZE(f1)) as words;
+C= GROUP B BY words;
+D= FOREACH C GENERATE group, COUNT(B.words);
+D= FOREACH C GENERATE group as Wo, COUNT(B.words) as Co;
+E= ORDER D BY Co DESC;
+F= LIMIT E 10;

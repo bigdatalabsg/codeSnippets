@@ -1,0 +1,37 @@
+;========================================================================
+put 'stocks','20050103AEA','trade:xchange','NYSE'
+put 'stocks','20050103AEA','trade:symbol','AEA'
+put 'stocks','20050103AEA','trade:trdate','2005-01-03'
+put 'stocks','20050103AEA','trade:open','22.7'
+put 'stocks','20050103AEA','trade:high','22.95'
+put 'stocks','20050103AEA','trade:low','22.2'
+put 'stocks','20050103AEA','trade:close','22.29'
+put 'stocks','20050103AEA','trade:volume','572400'
+put 'stocks','20050103AEA','trade:adj_close','16.62'
+=========================================================================
+put 'stocks','20050104AEA','trade:xchange','NYSE'
+put 'stocks','20050104AEA','trade:symbol','AEA'
+put 'stocks','20050104AEA','trade:trdate','2005-01-04'
+put 'stocks','20050104AEA','trade:open','22.41'
+put 'stocks','20050104AEA','trade:high','22.62'
+put 'stocks','20050104AEA','trade:low','21.4'
+put 'stocks','20050104AEA','trade:close','21.51'
+put 'stocks','20050104AEA','trade:volume','310600'
+put 'stocks','20050104AEA','trade:adj_close','16.04'
+=========================================================================
+
+scan 'tablename' ,{ FILTER => "SingleColumnValueFilter('column_family','col_name',>, 'binary:1')" }
+scan 'stocks', {FILTER=> "SingleColumnValueFilter('trade','symbol',=,'regexstring:AEA')", LIMIT =>10}
+
+scan 't1',{ COLUMNS => 'd:a_content', LIMIT => 1, FILTER => "ValueFilter( =, 'regexstring:BIGBLUE' )" }
+scan 'stocks',{ COLUMNS => 'trade:symbol', LIMIT => 10, FILTER => "ValueFilter( =, 'regexstring:AEA' )" }
+
+scan 'emp',{ COLUMNS => 'profess:job', LIMIT => 10, FILTER => "ValueFilter( =, 'regexstring:PRESIDENT' )" }
+
+
+import org.apache.hadoop.hbase.filter.CompareFilter
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
+import org.apache.hadoop.hbase.filter.SubstringComparator
+import org.apache.hadoop.hbase.util.Bytes
+
+scan 'stocks', {LIMIT => 10, FILTER => "SingleColumnValueFilter.new(Bytes.toBytes('trade'), Bytes.toBytes('symbol'), CompareFilter::CompareOp.valueOf('EQUAL'), Bytes.toBytes('AEA')), COLUMNS => 'trade:symbol' }

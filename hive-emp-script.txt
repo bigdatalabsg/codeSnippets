@@ -1,0 +1,13 @@
+Create external table emp(empno INT,  ename STRING, job STRING,  mgr INT,  hiredate STRING,  sal FLOAT,  comm FLOAT,  deptno INT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/filehandling/data/emp';
+
+Create external table dept(deptno INT,  dname STRING, location STRING) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/filehandling/data/dept';
+
+CREATE TABLE IF NOT EXISTS <new_table_name> AS Select * from ... 
+
+Create external table daily_trades(xchange STRING,symbol STRING,trdate STRING,open FLOAT,high FLOAT,low FLOAT,close FLOAT,volume INT,adj_close FLOAT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","  
+STORED AS TEXTFILE LOCATION '/user/demo/stocks/data/daily_prices';

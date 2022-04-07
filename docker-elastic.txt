@@ -1,0 +1,4 @@
+docker run -it -v /app/docker-host/logstash:/app/logstash/ logstash:active bash
+docker run -it -v /app/docker-host/kibana/data:/app/kibana/data --user kibana kibana:active bash
+docker run -it -v /app/docker-host/elastic/:/app/elastic/ --user elasticsearch elasticsearch:active bash
+

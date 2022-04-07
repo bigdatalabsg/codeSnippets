@@ -1,0 +1,46 @@
+PUT _template/atm_template
+{
+ "template": "atm_info*",
+ "settings": {
+   "number_of_shards": 1
+ },
+ "mappings": {
+   "atmlocation": {
+     "properties": {
+       "location": {
+         "type": "geo_point"
+       }
+     }
+   }
+ }
+}
+
+PUT _ingest/pipeline/parse_atm_csv
+{
+ "description": "Parsing the ATM Locations",
+ "processors": [
+   {
+     "grok": {
+       "field": "atmlocation",
+       "patterns": [
+         "%{NUMBER:tran_id},%{DATA:tran_dt},%{DATA:branch},%{DATA:state},%{NUMBER:location.lat},%{NUMBER:location.lon},%{DATA:tran_typ},%{NUMBER:tran_amt}"
+       ]
+     }
+   },
+   {
+     "remove": {
+       "field": "atmlocation"
+     }
+   }
+ ]
+}
+
+while read f1
+do        
+  curl -XPOST 'http://localhost:9200/atm_info_v1/atmlocation?pipeline=parse_atm_csv' -H "Content-Type: application/json" -u elastic:changeme -d "{ \"atmlocation\": \"$f1\" }"  
+done < atm_logs.csv
+
+while read f1
+do        
+  curl -XPOST 'http://localhost:9200/subway_info_v1/station?pipeline=parse_nyc_csv' -H "Content-Type: application/json" -u elastic:changeme -d "{ \"station\": \"$f1\" }"  
+done < NYC_Transit_Subway_Entrance_And_Exit_Data.csv

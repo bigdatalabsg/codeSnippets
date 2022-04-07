@@ -1,0 +1,15 @@
+#==========================================================================================
+if (($(cat /etc/hosts | grep "#cluster_hosts" | wc -l)>0))
+then
+echo "hosts added"
+else
+echo "adding hosts"
+echo "#cluster_hosts">>/etc/hosts
+echo "172.18.0.33     mysql">>/etc/hosts
+echo "172.18.0.21     zookeeper">>/etc/hosts
+echo "172.18.0.22     master">>/etc/hosts
+echo "172.18.0.23     edge">>/etc/hosts
+echo "172.18.0.24     datanode01">>/etc/hosts
+echo "172.18.0.25     datanode02">>/etc/hosts
+echo "172.18.0.26     datanode03">>/etc/hosts
+fi

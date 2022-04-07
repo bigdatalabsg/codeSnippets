@@ -1,0 +1,24 @@
+//Read File
+val dividendFile = sc.textFile("/	user/stocks/data/dividends/DIVIDENDS_NH.csv");
+
+//Check First Record
+dividendFile.first();
+
+//Collect
+val dividendArray = dividendFile.collect();
+
+//Define a Schema
+case class dividend(xchange: String, symbol: String, trdate: String, dividend: Float);
+
+val dividendRDD = sc.parallelize(dividendArray).map(_.split(",")).map(line => dividend(line(0).toString, line(1).toString, line(2).toString, line(3).toFloat));
+
+val dividendDF = dividendRDD.toDF();
+
+dividendDF.printSchema();
+
+dividendDF.count();
+
+dividendDF.first();
+
+dividendDF.show();
+

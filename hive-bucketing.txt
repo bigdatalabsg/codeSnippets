@@ -1,0 +1,52 @@
+CREATE TABLE stocks_trends(
+trdate string,
+yearr int,
+today_close float,
+prev_close float,
+diff float,
+trend string) 
+PARTITIONED BY (symbol string) CLUSTERED BY (yearr) SORTED BY (yearr) INTO 32 BUCKETS STORED AS ORC tblproperties ("orc.compress"="ZLIB"); 
+
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+INSERT OVERWRITE table stocks_trends partition(symbol) 
+SELECT b.trdate as trdate, year(b.trdate) as yearr,b.close as today_close, a.close as prev_close, (b.close-a.close) as diff, 
+CASE WHEN (b.close-a.close)>0  then "Up" WHEN (b.close-a.close)<0 then "Down" ELSE "No Change" END as trend, b.symbol as symbol 
+from t_daily_trades_orc_zlib a inner join t_daily_trades_orc_zlib b on b.symbol=a.symbol and b.trdate=DATE_ADD(a.trdate,1)
+DISTRIBUTE by symbol;
+
+CREATE TABLE stocks_trend as 
+
+
+SELECT b.symbol as symbol,b.trdate as trdate, b.close as today_close, a.close as prev_close, (b.close-a.close) as diff, CASE WHEN (b.close-a.close)>0  then "Up" WHEN (b.close-a.close)<0 then "Down" ELSE "No Change" END as trend from t_daily_trades_orc_zlib a inner join t_daily_trades_orc_zlib b on b.symbol=a.symbol and b.trdate=DATE_ADD(a.trdate,1);
+
+Create table flightdelays_orc_t1(month INT,dayofmonth INT,dayofweek INT,deptime INT,crsdeptime INT,arrtime INT,crsarrtime INT,uniquecarrier STRING,
+flightnum INT,tailnum STRING,actualelapsedtime INT,crselapsedtime INT,airtime INT,arrdelay INT,depdelay INT,
+origin STRING,dest STRING,distance INT,taxiin INT,taxiout INT,cancelled INT,cancellationcode STRING,diverted INT,carrierdelay INT,weatherdelay INT,
+nasdelay INT,securitydelay INT,lateaircraftdelay INT,isarrdelayed STRING,isdepdelayed STRING) 
+PARTITIONED BY (year INT)
+CLUSTERED BY (uniquecarrier) SORTED BY (uniquecarrier) INTO 27 BUCKETS
+STORED AS ORC tblproperties ("orc.compress"="NONE");
+
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+set hive.enforce.bucketing = true;
+
+INSERT INTO flightdelays_orc_t1 PARTITION (year) select month,dayofmonth,dayofweek,deptime,crsdeptime,arrtime,crsarrtime,uniquecarrier,flightnum,tailnum,actualelapsedtime,
+crselapsedtime,airtime,arrdelay,depdelay,origin,dest,distance,taxiin,taxiout,cancelled,cancellationcode,diverted,carrierdelay,
+weatherdelay,nasdelay,securitydelay,lateaircraftdelay,isarrdelayed,isdepdelayed,year from flightdelays_orc_t;
+
+
+
+Create table flightdelays_orc_t1(year INT,month INT,dayofmonth INT,dayofweek INT,deptime INT,crsdeptime INT,arrtime INT,crsarrtime INT,uniquecarrier STRING,
+flightnum INT,tailnum STRING,actualelapsedtime INT,crselapsedtime INT,airtime INT,arrdelay INT,depdelay INT,
+origin STRING,dest STRING,distance INT,taxiin INT,taxiout INT,cancelled INT,cancellationcode STRING,diverted INT,carrierdelay INT,weatherdelay INT,
+nasdelay INT,securitydelay INT,lateaircraftdelay INT,isarrdelayed STRING,isdepdelayed STRING) 
+STORED AS ORC tblproperties ("orc.compress"="NONE");
+
+INSERT INTO flightdelays_orc_t1 select year,month,dayofmonth,dayofweek,deptime,crsdeptime,arrtime,crsarrtime,uniquecarrier,flightnum,tailnum,actualelapsedtime,
+crselapsedtime,airtime,arrdelay,depdelay,origin,dest,distance,taxiin,taxiout,cancelled,cancellationcode,diverted,carrierdelay,
+weatherdelay,nasdelay,securitydelay,lateaircraftdelay,isarrdelayed,isdepdelayed,year from flightdelays_orc_t;
+

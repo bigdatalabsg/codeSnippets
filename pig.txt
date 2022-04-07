@@ -1,0 +1,14 @@
+TRADES= LOAD '/projects/stocks/data/daily_prices/DAILY_TRADES.csv' USING PigStorage(',') AS (exchange:chararray,symbol:chararray,trdate:chararray,open:float,high:float,low:float,close:float,volume:int,adj_close:float);
+
+SYM_YR_DETS = FOREACH TRADES GENERATE symbol,GetYear(ToDate(trdate,'yyyy-mm-dd')) as yearr,volume;
+
+BY_YR_SYM = GROUP SYM_YR_DETS BY (yearr,symbol);
+
+AVG_VOL_BY_YR_SYM= FOREACH BY_YR_SYM GENERATE group.symbol as symbol, group.yearr as yearr, AVG(SYM_YR_DETS.volume) as avg_volume;
+
+BY_YEAR = FILTER AVG_VOL_BY_YR_SYM BY yearr==1962;
+
+X = LIMIT BY_YEAR 30;
+
+DUMP X;
+

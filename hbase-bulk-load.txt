@@ -1,0 +1,31 @@
+REGISTER /usr/local/hbase/lib/hbase-common-1.1.5.jar
+REGISTER /usr/local/hbase/lib/hbase-client-1.1.5.jar
+REGISTER /usr/local/hbase/lib/hbase-client-1.1.5.jar
+REGISTER /usr/local/hbase/lib/hbase-protocol-1.1.5.jar
+REGISTER /usr/local/hbase/lib/htrace-core-3.1.0-incubating.jar
+REGISTER /usr/local/hbase/lib/zookeeper-3.4.6.jar 
+REGISTER /usr/local/hbase/lib/guava-12.0.1.jar
+REGISTER /usr/local/pig/pig-0.15.0-core-h2.jar
+REGISTER /usr/local/pig/lib/pig-0.15.0.jar
+
+STK_DATA= LOAD 'NYSE_daily_prices_NH.csv' USING PigStorage(',') AS (xchange:chararray,symbol:chararray,trdate:chararray,open:float,high:float,low:float,close:float,volume:int,adj_close:float);
+
+STK= LIMIT STK_DATA 5;
+
+//check for data
+
+STORE STOCK_DATA INTO 'hbase://stocks' 
+USING org.apache.pig.backend.hadoop.hbase.HBaseStorage(
+'trade:xchange, trade:symbol, trade:trdate, trade:open, trade:high, trade:low, trade:close, trade:volume, trade:adj_close'
+);
+
+STK_DATA= LOAD 'NYSE_daily_prices_NH.csv' USING PigStorage(',') AS (xchange:chararray,symbol:chararray,trdate:chararray,open:float,high:float,low:float,close:float,volume:int,adj_close:float);
+
+STK= LIMIT STK_DATA 5;
+
+//check for data
+
+STORE STOCK_DATA INTO 'hbase://stocks' 
+USING org.apache.pig.backend.hadoop.hbase.HBaseStorage(
+'trade:xchange, trade:symbol, trade:trdate, trade:open, trade:high, trade:low, trade:close, trade:volume, trade:adj_close'
+);
